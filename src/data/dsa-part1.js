@@ -1,0 +1,297 @@
+export const DSA_PART1 = [
+  {
+    id: 1, title: "Big O & Complexity", icon: "\u{1F9EE}", color: "#E74C3C", desc: "Time & Space Analysis",
+    lessons: [
+      {
+        title: "Time Complexity Basics",
+        slides: [
+          { type: "teach", content: "**Big O notation** describes how an algorithm's runtime grows as input size increases. O(1) is constant, O(n) is linear, O(n\u00B2) is quadratic.", highlight: "Big O notation" },
+          { type: "teach", content: "To find Big O, look at the **dominant term** and drop constants: 3n\u00B2 + 5n + 7 \u2192 O(n\u00B2). Always consider the **worst case** scenario.", highlight: "dominant term" },
+        ],
+        questions: [
+          { q: "What does Big O notation describe?", options: ["The exact runtime in milliseconds", "How runtime grows as input size increases", "The minimum possible runtime", "How much memory a program uses"], answer: 1 },
+          { q: "What is the Big O of accessing an element in an array by index?", options: ["O(n)", "O(log n)", "O(1)", "O(n\u00B2)"], answer: 2 },
+          { q: "Which Big O is faster for large inputs: O(n) or O(n\u00B2)?", options: ["O(n\u00B2) is faster", "O(n) is faster", "They are the same", "Depends on the constant"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What is the time complexity of this code?", code: "function findMax(arr) {\n  let max = arr[0];\n  for (let i = 1; i < arr.length; i++) {\n    if (arr[i] > max) max = arr[i];\n  }\n  return max;\n}", options: ["O(1)", "O(log n)", "O(n)", "O(n\u00B2)"], answer: 2 },
+          { difficulty: "average", type: "fill", q: "Complete the Big O simplification:", code: "Expression: 5n\u00B3 + 3n\u00B2 + 100n + 42\nDominant term: ___BLANK1___\nBig O: O(___BLANK2___)", blanks: [{ id: "BLANK1", options: ["42", "100n", "3n\u00B2", "5n\u00B3"], answer: 3 }, { id: "BLANK2", options: ["n", "n\u00B2", "n\u00B3", "1"], answer: 2 }] },
+          { difficulty: "average", type: "order", q: "Rank these Big O complexities from fastest to slowest:", lines: ["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n\u00B2)"], correctOrder: [0, 1, 2, 3, 4] },
+          { difficulty: "advanced", type: "output", q: "What is the time complexity of this function?", code: "function mystery(n) {\n  let count = 0;\n  for (let i = 1; i < n; i *= 2) {\n    count++;\n  }\n  return count;\n}", options: ["O(n)", "O(n\u00B2)", "O(log n)", "O(n log n)"], answer: 2 },
+          { difficulty: "advanced", type: "freeform", q: "Write a function that has O(n log n) time complexity. Explain why it is O(n log n) in comments.", starterCode: "function nLogN(arr) {\n  // Your code here\n}", patterns: ["for|while", "sort|log|/2|\\*2", "n.*log|log.*n"], sampleAnswer: "function nLogN(arr) {\n  // O(n log n): outer loop runs n times, inner loop halves each time (log n)\n  for (let i = 0; i < arr.length; i++) {\n    for (let j = 1; j < arr.length; j *= 2) {\n      console.log(arr[i], j);\n    }\n  }\n}" },
+          { difficulty: "advanced", q: "An algorithm has two phases: Phase 1 is O(n log n) and Phase 2 is O(n). What is the overall Big O?", options: ["O(n)", "O(n + n log n)", "O(n log n)", "O(n\u00B2 log n)"], answer: 2 },
+        ]
+      },
+      {
+        title: "Space Complexity",
+        slides: [
+          { type: "teach", content: "**Space complexity** measures how much extra memory an algorithm uses as input grows. Like time complexity, we express it in Big O notation.", highlight: "Space complexity" },
+          { type: "teach", content: "An **in-place** algorithm uses O(1) extra space. Creating a new array of size n uses O(n) space. A 2D matrix uses O(n\u00B2) space.", highlight: "in-place" },
+        ],
+        questions: [
+          { q: "What does space complexity measure?", options: ["How fast code runs", "How much disk space code uses", "How much extra memory an algorithm uses", "The size of the source code"], answer: 2 },
+          { q: "An algorithm that only uses a few variables regardless of input size has what space complexity?", options: ["O(n)", "O(log n)", "O(n\u00B2)", "O(1)"], answer: 3 },
+          { q: "What is the space complexity of creating a copy of an array of size n?", options: ["O(1)", "O(n)", "O(log n)", "O(n\u00B2)"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What is the space complexity of this function?", code: "function doubleAll(arr) {\n  const result = [];\n  for (let i = 0; i < arr.length; i++) {\n    result.push(arr[i] * 2);\n  }\n  return result;\n}", options: ["O(1)", "O(n)", "O(n\u00B2)", "O(log n)"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Identify the space usage:", code: "function process(n) {\n  let grid = [];\n  for (let i = 0; i < n; i++) {\n    grid[i] = new Array(___BLANK1___).fill(0);\n  }\n  return grid;\n  // Space complexity: O(___BLANK2___)\n}", blanks: [{ id: "BLANK1", options: ["1", "i", "n", "n*n"], answer: 2 }, { id: "BLANK2", options: ["n", "n\u00B2", "1", "log n"], answer: 1 }] },
+          { difficulty: "average", q: "Recursive functions use extra space for what reason?", options: ["They create new arrays", "Each recursive call adds a frame to the call stack", "They always copy the input", "Recursion uses heap memory only"], answer: 1 },
+          { difficulty: "advanced", type: "output", q: "What is the space complexity of this recursive function?", code: "function factorial(n) {\n  if (n <= 1) return 1;\n  return n * factorial(n - 1);\n}", options: ["O(1)", "O(n)", "O(log n)", "O(n\u00B2)"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Rewrite this function to use O(1) space instead of O(n) space. It should reverse an array in place.", starterCode: "function reverseArray(arr) {\n  const reversed = [];\n  for (let i = arr.length - 1; i >= 0; i--) {\n    reversed.push(arr[i]);\n  }\n  return reversed;\n}", patterns: ["swap|temp|\\[.*\\].*=.*\\[.*\\]", "for|while", "arr\\["], sampleAnswer: "function reverseArray(arr) {\n  let left = 0, right = arr.length - 1;\n  while (left < right) {\n    let temp = arr[left];\n    arr[left] = arr[right];\n    arr[right] = temp;\n    left++;\n    right--;\n  }\n  return arr;\n}" },
+          { difficulty: "advanced", type: "order", q: "Rank these operations by space complexity from least to most:", lines: ["Swapping two variables using a temp", "Creating a hash map from n elements", "Building an n\u00D7n matrix", "Storing a single counter variable"], correctOrder: [3, 0, 1, 2] },
+        ]
+      },
+      {
+        title: "Analyzing Code Patterns",
+        slides: [
+          { type: "teach", content: "**Nested loops** multiply their complexities: a loop inside a loop over n elements is O(n\u00B2). Three nested loops would be O(n\u00B3).", highlight: "Nested loops" },
+          { type: "teach", content: "**Sequential operations** add: O(n) + O(n) = O(2n) = O(n). But O(n) + O(n\u00B2) = O(n\u00B2) because we keep the **dominant term**.", highlight: "Sequential operations" },
+        ],
+        questions: [
+          { q: "What is the time complexity of two separate (non-nested) loops over an array of size n?", options: ["O(n\u00B2)", "O(2n) = O(n)", "O(n log n)", "O(1)"], answer: 1 },
+          { q: "What is the time complexity of a loop inside a loop, both iterating n times?", options: ["O(n)", "O(2n)", "O(n\u00B2)", "O(n + n)"], answer: 2 },
+          { q: "If an algorithm does O(n) work inside a loop that runs log(n) times, what is the total complexity?", options: ["O(n)", "O(log n)", "O(n log n)", "O(n\u00B2)"], answer: 2 },
+          { difficulty: "average", type: "output", q: "What is the time complexity of this code?", code: "function printPairs(arr) {\n  for (let i = 0; i < arr.length; i++) {\n    for (let j = i + 1; j < arr.length; j++) {\n      console.log(arr[i], arr[j]);\n    }\n  }\n}", options: ["O(n)", "O(n log n)", "O(n\u00B2)", "O(n\u00B3)"], answer: 2 },
+          { difficulty: "average", type: "output", q: "What is the time complexity of this code?", code: "function search(arr, target) {\n  let low = 0, high = arr.length - 1;\n  while (low <= high) {\n    let mid = Math.floor((low + high) / 2);\n    if (arr[mid] === target) return mid;\n    else if (arr[mid] < target) low = mid + 1;\n    else high = mid - 1;\n  }\n  return -1;\n}", options: ["O(n)", "O(log n)", "O(n\u00B2)", "O(1)"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Analyze the complexity of this code:", code: "for (let i = 0; i < n; i++) {       // O(___BLANK1___)\n  for (let j = 0; j < 100; j++) {    // O(___BLANK2___)\n    console.log(i, j);\n  }\n}\n// Total: O(n) because inner loop is constant", blanks: [{ id: "BLANK1", options: ["1", "n", "n\u00B2", "log n"], answer: 1 }, { id: "BLANK2", options: ["n", "100 = 1", "n\u00B2", "log n"], answer: 1 }] },
+          { difficulty: "advanced", type: "output", q: "What is the time complexity of this function?", code: "function twoLoops(arr1, arr2) {\n  // arr1 has n elements, arr2 has m elements\n  for (let i = 0; i < arr1.length; i++) {\n    for (let j = 0; j < arr2.length; j++) {\n      console.log(arr1[i], arr2[j]);\n    }\n  }\n}", options: ["O(n\u00B2)", "O(n * m)", "O(n + m)", "O(n)"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Write a function with exactly O(n log n) time complexity that finds duplicates in an array. Explain the complexity in comments.", starterCode: "function findDuplicates(arr) {\n  // Your code here\n}", patterns: ["sort", "for|while", "arr\\[i\\].*arr\\[i.*1\\]|arr\\[i.*-.*1\\].*arr\\[i\\]"], sampleAnswer: "function findDuplicates(arr) {\n  // O(n log n) from sorting + O(n) for scanning = O(n log n)\n  arr.sort((a, b) => a - b); // O(n log n)\n  const dupes = [];\n  for (let i = 1; i < arr.length; i++) { // O(n)\n    if (arr[i] === arr[i - 1]) dupes.push(arr[i]);\n  }\n  return dupes;\n}" },
+          { difficulty: "advanced", q: "A function calls itself twice with n/2 each time (like merge sort). What is its time complexity?", options: ["O(n)", "O(n\u00B2)", "O(n log n)", "O(2\u207F)"], answer: 2 },
+        ]
+      }
+    ]
+  },
+  {
+    id: 2, title: "Arrays & Strings", icon: "\u{1F9EE}", color: "#E74C3C", desc: "Core Data Structures",
+    lessons: [
+      {
+        title: "Array Fundamentals & Two Pointers",
+        slides: [
+          { type: "teach", content: "**Arrays** store elements in contiguous memory. Access by index is O(1), but inserting/deleting from the middle is O(n) because elements must shift.", highlight: "Arrays" },
+          { type: "teach", content: "The **two-pointer** technique uses two indices to traverse an array, often from both ends. It turns O(n\u00B2) brute-force solutions into O(n).", highlight: "two-pointer" },
+        ],
+        questions: [
+          { q: "What is the time complexity of accessing arr[5] in an array?", options: ["O(n)", "O(log n)", "O(1)", "O(n\u00B2)"], answer: 2 },
+          { q: "Why is inserting at the beginning of an array O(n)?", options: ["The array must be copied", "All existing elements must shift right", "Memory must be reallocated", "The index must be recalculated"], answer: 1 },
+          { q: "In the two-pointer technique, where do the pointers typically start?", options: ["Both at the beginning", "Both at the end", "One at each end", "At random positions"], answer: 2 },
+          { difficulty: "average", type: "output", q: "What does this two-pointer function return for [1, 2, 3, 4, 5]?", code: "function twoSum(arr, target) {\n  let left = 0, right = arr.length - 1;\n  while (left < right) {\n    const sum = arr[left] + arr[right];\n    if (sum === target) return [left, right];\n    else if (sum < target) left++;\n    else right--;\n  }\n  return [];\n}\nconsole.log(twoSum([1,2,3,4,5], 7));", options: ["[1, 4]", "[2, 3]", "[2, 4]", "[1, 3]"], answer: 0 },
+          { difficulty: "average", type: "fill", q: "Complete the two-pointer palindrome check:", code: "function isPalindrome(str) {\n  let left = 0, right = str.length - 1;\n  while (left ___BLANK1___ right) {\n    if (str[left] !== str[right]) return false;\n    left___BLANK2___;\n    right--;\n  }\n  return true;\n}", blanks: [{ id: "BLANK1", options: [">=", "<", "<=", "==="], answer: 1 }, { id: "BLANK2", options: ["--", "++", " += 2", " = right"], answer: 1 }] },
+          { difficulty: "average", q: "What is the time complexity of the two-pointer technique on a sorted array?", options: ["O(n\u00B2)", "O(n log n)", "O(n)", "O(log n)"], answer: 2 },
+          { difficulty: "advanced", type: "freeform", q: "Write a function that removes duplicates from a sorted array in-place and returns the new length. Use the two-pointer approach.", starterCode: "function removeDuplicates(arr) {\n  // Your code here\n}", patterns: ["let.*=.*[01]", "for|while", "arr\\[.*\\].*=.*arr\\[", "return"], sampleAnswer: "function removeDuplicates(arr) {\n  if (arr.length === 0) return 0;\n  let slow = 0;\n  for (let fast = 1; fast < arr.length; fast++) {\n    if (arr[fast] !== arr[slow]) {\n      slow++;\n      arr[slow] = arr[fast];\n    }\n  }\n  return slow + 1;\n}" },
+          { difficulty: "advanced", type: "output", q: "What does this function return for arr = [0, 1, 0, 3, 12]?", code: "function moveZeroes(arr) {\n  let insertPos = 0;\n  for (let i = 0; i < arr.length; i++) {\n    if (arr[i] !== 0) {\n      arr[insertPos] = arr[i];\n      insertPos++;\n    }\n  }\n  while (insertPos < arr.length) {\n    arr[insertPos] = 0;\n    insertPos++;\n  }\n  return arr;\n}", options: ["[0, 0, 1, 3, 12]", "[1, 3, 12, 0, 0]", "[0, 1, 3, 12, 0]", "[1, 0, 3, 0, 12]"], answer: 1 },
+          { difficulty: "advanced", type: "order", q: "Order the steps to solve 'Container With Most Water' using two pointers:", lines: ["Initialize left at 0 and right at end", "Calculate area: min(height[left], height[right]) * (right - left)", "Update maxArea if current area is larger", "Move the pointer with the shorter height inward", "Repeat until left meets right"], correctOrder: [0, 1, 2, 3, 4] },
+        ]
+      },
+      {
+        title: "Sliding Window",
+        slides: [
+          { type: "teach", content: "The **sliding window** technique maintains a window of elements as you iterate. You expand the right side and shrink the left side based on conditions.", highlight: "sliding window" },
+          { type: "teach", content: "Use sliding window for problems involving **contiguous subarrays** or substrings: max sum of k elements, longest substring without repeats, etc.", highlight: "contiguous subarrays" },
+        ],
+        questions: [
+          { q: "What type of problems is the sliding window technique best for?", options: ["Sorting problems", "Graph traversal", "Contiguous subarray/substring problems", "Tree problems"], answer: 2 },
+          { q: "In a fixed-size sliding window, what happens when you add an element on the right?", options: ["Nothing else changes", "You remove one from the left", "The window doubles in size", "All elements are recalculated"], answer: 1 },
+          { q: "What is the time complexity of a sliding window approach over an array of size n?", options: ["O(n\u00B2)", "O(n)", "O(n log n)", "O(log n)"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What does this function return for ([2,1,5,1,3,2], 3)?", code: "function maxSumSubarray(arr, k) {\n  let maxSum = 0, windowSum = 0;\n  for (let i = 0; i < k; i++) {\n    windowSum += arr[i];\n  }\n  maxSum = windowSum;\n  for (let i = k; i < arr.length; i++) {\n    windowSum += arr[i] - arr[i - k];\n    maxSum = Math.max(maxSum, windowSum);\n  }\n  return maxSum;\n}", options: ["8", "9", "10", "7"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Complete the sliding window to find max sum of k elements:", code: "function maxSum(arr, k) {\n  let windowSum = 0;\n  for (let i = 0; i < k; i++) windowSum += arr[i];\n  let maxSum = windowSum;\n  for (let i = k; i < arr.length; i++) {\n    windowSum += arr[i] - arr[___BLANK1___];\n    maxSum = Math.___BLANK2___(maxSum, windowSum);\n  }\n  return maxSum;\n}", blanks: [{ id: "BLANK1", options: ["i", "i - 1", "i - k", "k"], answer: 2 }, { id: "BLANK2", options: ["min", "max", "abs", "floor"], answer: 1 }] },
+          { difficulty: "average", type: "order", q: "Order the steps for a fixed-size sliding window:", lines: ["Calculate the sum of the first k elements", "Store this as the initial max/min", "Slide the window: add next element, remove first element", "Compare and update max/min", "Continue until end of array"], correctOrder: [0, 1, 2, 3, 4] },
+          { difficulty: "advanced", type: "freeform", q: "Write a function to find the length of the longest substring without repeating characters using a sliding window.", starterCode: "function longestUnique(str) {\n  // Your code here\n}", patterns: ["Set|Map|\\{\\}|\\[\\]", "while|for", "Math\\.max|max", "delete|remove|clear|has"], sampleAnswer: "function longestUnique(str) {\n  const seen = new Set();\n  let left = 0, maxLen = 0;\n  for (let right = 0; right < str.length; right++) {\n    while (seen.has(str[right])) {\n      seen.delete(str[left]);\n      left++;\n    }\n    seen.add(str[right]);\n    maxLen = Math.max(maxLen, right - left + 1);\n  }\n  return maxLen;\n}" },
+          { difficulty: "advanced", type: "output", q: "What does this function return for ('abcabcbb')?", code: "function lengthOfLongest(s) {\n  const map = new Map();\n  let left = 0, max = 0;\n  for (let right = 0; right < s.length; right++) {\n    if (map.has(s[right])) {\n      left = Math.max(left, map.get(s[right]) + 1);\n    }\n    map.set(s[right], right);\n    max = Math.max(max, right - left + 1);\n  }\n  return max;\n}", options: ["4", "3", "2", "6"], answer: 1 },
+          { difficulty: "advanced", q: "When should you use a variable-size sliding window instead of a fixed-size one?", options: ["When the array is sorted", "When you need to find a subarray that meets a dynamic condition (like a target sum)", "When you know the exact subarray length in advance", "When elements are unique"], answer: 1 },
+        ]
+      },
+      {
+        title: "String Manipulation",
+        slides: [
+          { type: "teach", content: "Strings in JavaScript are **immutable** \u2014 you cannot change individual characters. Every modification creates a new string, which has performance implications.", highlight: "immutable" },
+          { type: "teach", content: "Common string operations: **split()** breaks into an array, **join()** merges an array into a string, **slice()** extracts a portion, and **charCodeAt()** gets the ASCII value.", highlight: "split()" },
+        ],
+        questions: [
+          { q: "What does it mean that strings in JavaScript are immutable?", options: ["They can't be stored in variables", "Individual characters cannot be changed in place", "They can only contain letters", "They have a maximum length"], answer: 1 },
+          { q: "What does 'hello'.split('') return?", options: ["'hello'", "['hello']", "['h','e','l','l','o']", "['h e l l o']"], answer: 2 },
+          { q: "What is the time complexity of string concatenation in a loop (str += char) for n characters?", options: ["O(n)", "O(n\u00B2)", "O(log n)", "O(1)"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What does this code output?", code: "function reverseWords(str) {\n  return str.split(' ').reverse().join(' ');\n}\nconsole.log(reverseWords('hello world today'));", options: ["'today world hello'", "'olleh dlrow yadot'", "'hello world today'", "'yadot dlrow olleh'"], answer: 0 },
+          { difficulty: "average", type: "fill", q: "Complete the function to check if two strings are anagrams:", code: "function isAnagram(s1, s2) {\n  if (s1.length !== s2.length) return false;\n  const sorted1 = s1.split('').___BLANK1___().join('');\n  const sorted2 = s2.split('').sort().___BLANK2___('');\n  return sorted1 === sorted2;\n}", blanks: [{ id: "BLANK1", options: ["reverse", "sort", "filter", "map"], answer: 1 }, { id: "BLANK2", options: ["split", "join", "concat", "slice"], answer: 1 }] },
+          { difficulty: "average", type: "output", q: "What does this function return for 'A man a plan a canal Panama'?", code: "function isPalindromeStr(s) {\n  const cleaned = s.toLowerCase().replace(/[^a-z0-9]/g, '');\n  return cleaned === cleaned.split('').reverse().join('');\n}", options: ["false", "true", "undefined", "Error"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Write a function that compresses a string: 'aabcccccaaa' becomes 'a2b1c5a3'. If the compressed string is not shorter, return the original.", starterCode: "function compress(str) {\n  // Your code here\n}", patterns: ["for|while", "count|len|num", "\\+.*1|\\+\\+|\\+=", "return.*str|return.*result|return.*compressed"], sampleAnswer: "function compress(str) {\n  let result = '';\n  let count = 1;\n  for (let i = 0; i < str.length; i++) {\n    if (str[i] === str[i + 1]) {\n      count++;\n    } else {\n      result += str[i] + count;\n      count = 1;\n    }\n  }\n  return result.length < str.length ? result : str;\n}" },
+          { difficulty: "advanced", type: "output", q: "What does this function return for ('waterbottle', 'erbottlewat')?", code: "function isRotation(s1, s2) {\n  if (s1.length !== s2.length || s1.length === 0) return false;\n  const doubled = s1 + s1;\n  return doubled.includes(s2);\n}", options: ["false", "true", "undefined", "'waterbottlewaterbottle'"], answer: 1 },
+          { difficulty: "advanced", type: "order", q: "Order the steps to find the first non-repeating character in a string:", lines: ["Create a frequency map (count of each character)", "Iterate through the string, incrementing counts", "Iterate through the string again", "Return the first character with count === 1", "Return -1 if no unique character found"], correctOrder: [0, 1, 2, 3, 4] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 3, title: "Linked Lists", icon: "\u{1F9EE}", color: "#E74C3C", desc: "Node-Based Structures",
+    lessons: [
+      {
+        title: "Singly Linked Lists",
+        slides: [
+          { type: "teach", content: "A **singly linked list** is a chain of nodes where each node holds a value and a pointer to the **next** node. The last node points to null.", highlight: "singly linked list" },
+          { type: "teach", content: "Unlike arrays, linked lists have O(1) insertion/deletion at the head, but O(n) access to elements since you must traverse from the beginning.", highlight: "O(1) insertion" },
+        ],
+        questions: [
+          { q: "What does each node in a singly linked list contain?", options: ["Only a value", "A value and a pointer to the next node", "A value and pointers to next and previous nodes", "An index and a value"], answer: 1 },
+          { q: "What is the time complexity of inserting at the head of a linked list?", options: ["O(n)", "O(log n)", "O(1)", "O(n\u00B2)"], answer: 2 },
+          { q: "How do you access the 5th element in a singly linked list?", options: ["Direct index access like an array", "Traverse from the head through 4 nodes", "Use binary search", "Access from the tail"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What does this code print?", code: "class Node {\n  constructor(val) {\n    this.val = val;\n    this.next = null;\n  }\n}\nlet head = new Node(1);\nhead.next = new Node(2);\nhead.next.next = new Node(3);\n\nlet curr = head;\nlet result = '';\nwhile (curr) {\n  result += curr.val + ' ';\n  curr = curr.next;\n}\nconsole.log(result.trim());", options: ["'3 2 1'", "'1 2 3'", "'1'", "'1 2 3 null'"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Complete the function to insert a node at the head:", code: "function insertAtHead(head, val) {\n  const newNode = new Node(___BLANK1___);\n  newNode.next = ___BLANK2___;\n  return newNode;\n}", blanks: [{ id: "BLANK1", options: ["head", "val", "null", "newNode"], answer: 1 }, { id: "BLANK2", options: ["null", "newNode", "head", "val"], answer: 2 }] },
+          { difficulty: "average", q: "When is a linked list preferred over an array?", options: ["When you need random access by index", "When you need frequent insertions/deletions at the beginning", "When memory is very limited", "When you need binary search"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Write a function to reverse a singly linked list iteratively. Return the new head.", starterCode: "function reverseList(head) {\n  // Your code here\n}", patterns: ["prev|previous", "next|temp", "while|for", "return.*prev"], sampleAnswer: "function reverseList(head) {\n  let prev = null;\n  let curr = head;\n  while (curr) {\n    let next = curr.next;\n    curr.next = prev;\n    prev = curr;\n    curr = next;\n  }\n  return prev;\n}" },
+          { difficulty: "advanced", type: "output", q: "What does this function return for list: 1 -> 2 -> 3 -> 4, n = 2?", code: "function removeNthFromEnd(head, n) {\n  let dummy = new Node(0);\n  dummy.next = head;\n  let fast = dummy, slow = dummy;\n  for (let i = 0; i <= n; i++) fast = fast.next;\n  while (fast) {\n    fast = fast.next;\n    slow = slow.next;\n  }\n  slow.next = slow.next.next;\n  return dummy.next;\n}", options: ["1 -> 2 -> 4", "1 -> 3 -> 4", "1 -> 2 -> 3", "2 -> 3 -> 4"], answer: 2 },
+          { difficulty: "advanced", type: "order", q: "Order the steps to delete a node with a given value from a linked list:", lines: ["Handle edge case: if head has the target value, return head.next", "Initialize curr = head", "Traverse: while curr.next is not null", "Check if curr.next.val equals the target", "If match: set curr.next = curr.next.next and return head", "Move curr to curr.next"], correctOrder: [0, 1, 2, 3, 4, 5] },
+        ]
+      },
+      {
+        title: "Doubly Linked Lists",
+        slides: [
+          { type: "teach", content: "A **doubly linked list** has nodes with pointers to both the **next** and **previous** nodes. This allows traversal in both directions.", highlight: "doubly linked list" },
+          { type: "teach", content: "Doubly linked lists make deletion O(1) when you have a reference to the node, since you can access the previous node directly. They use more memory per node.", highlight: "deletion O(1)" },
+        ],
+        questions: [
+          { q: "How does a doubly linked list differ from a singly linked list?", options: ["It has two values per node", "Each node has pointers to both next and previous nodes", "It can only be traversed forward", "It uses less memory"], answer: 1 },
+          { q: "What is the extra cost of a doubly linked list compared to a singly linked list?", options: ["Slower traversal", "More memory per node for the extra pointer", "Slower insertion at head", "It cannot be reversed"], answer: 1 },
+          { q: "Why is deletion faster in a doubly linked list when given a node reference?", options: ["It uses binary search", "You can directly access the previous node to update its next pointer", "It skips nodes automatically", "It copies the list first"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What does this code print?", code: "class DNode {\n  constructor(val) {\n    this.val = val;\n    this.prev = null;\n    this.next = null;\n  }\n}\nlet a = new DNode(1);\nlet b = new DNode(2);\nlet c = new DNode(3);\na.next = b; b.prev = a;\nb.next = c; c.prev = b;\n\nlet curr = c;\nlet result = '';\nwhile (curr) {\n  result += curr.val + ' ';\n  curr = curr.prev;\n}\nconsole.log(result.trim());", options: ["'1 2 3'", "'3 2 1'", "'3'", "'1 3'"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Complete the insertion in a doubly linked list after a given node:", code: "function insertAfter(node, val) {\n  const newNode = new DNode(val);\n  newNode.next = node.___BLANK1___;\n  newNode.prev = node;\n  if (node.next) node.next.prev = ___BLANK2___;\n  node.next = newNode;\n}", blanks: [{ id: "BLANK1", options: ["prev", "next", "val", "null"], answer: 1 }, { id: "BLANK2", options: ["node", "newNode", "null", "node.next"], answer: 1 }] },
+          { difficulty: "average", q: "Which data structure commonly uses a doubly linked list internally?", options: ["Stack", "Binary tree", "LRU Cache", "Hash set"], answer: 2 },
+          { difficulty: "advanced", type: "freeform", q: "Implement a doubly linked list with addToFront, addToEnd, and deleteNode methods.", starterCode: "class DoublyLinkedList {\n  constructor() {\n    this.head = null;\n    this.tail = null;\n  }\n  // Your methods here\n}", patterns: ["addToFront|addFront|prepend", "addToEnd|addEnd|append", "delete|remove", "prev.*=|next.*="], sampleAnswer: "class DoublyLinkedList {\n  constructor() {\n    this.head = null;\n    this.tail = null;\n  }\n  addToFront(val) {\n    const node = new DNode(val);\n    node.next = this.head;\n    if (this.head) this.head.prev = node;\n    this.head = node;\n    if (!this.tail) this.tail = node;\n  }\n  addToEnd(val) {\n    const node = new DNode(val);\n    node.prev = this.tail;\n    if (this.tail) this.tail.next = node;\n    this.tail = node;\n    if (!this.head) this.head = node;\n  }\n  deleteNode(node) {\n    if (node.prev) node.prev.next = node.next;\n    else this.head = node.next;\n    if (node.next) node.next.prev = node.prev;\n    else this.tail = node.prev;\n  }\n}" },
+          { difficulty: "advanced", type: "output", q: "After these operations, what does traversal from head print?", code: "const dll = new DoublyLinkedList();\ndll.addToEnd(1);\ndll.addToEnd(2);\ndll.addToEnd(3);\ndll.addToFront(0);\ndll.deleteNode(dll.head.next); // delete node with value 1\n// Traverse from head:", options: ["0 2 3", "0 1 2 3", "1 2 3", "0 1 3"], answer: 0 },
+          { difficulty: "advanced", type: "order", q: "Order the steps to delete a node from a doubly linked list:", lines: ["Check if node.prev exists; if so, set node.prev.next = node.next", "Check if node.next exists; if so, set node.next.prev = node.prev", "If node is the head, update head to node.next", "If node is the tail, update tail to node.prev", "Optionally nullify node.prev and node.next"], correctOrder: [2, 3, 0, 1, 4] },
+        ]
+      },
+      {
+        title: "Cycle Detection & Advanced",
+        slides: [
+          { type: "teach", content: "A **cycle** in a linked list occurs when a node's next pointer points back to a previous node, creating an infinite loop. This can cause traversal to never end.", highlight: "cycle" },
+          { type: "teach", content: "**Floyd's Tortoise and Hare** algorithm detects cycles using two pointers: slow (1 step) and fast (2 steps). If they meet, there's a cycle. This runs in O(n) time and O(1) space.", highlight: "Floyd's Tortoise and Hare" },
+        ],
+        questions: [
+          { q: "What causes a cycle in a linked list?", options: ["Having duplicate values", "A node pointing back to a previous node", "Having more than 10 nodes", "Using null as a value"], answer: 1 },
+          { q: "In Floyd's algorithm, how fast does each pointer move?", options: ["Both move 1 step", "Slow moves 1 step, fast moves 2 steps", "Slow moves 2 steps, fast moves 1 step", "Both move 2 steps"], answer: 1 },
+          { q: "What is the space complexity of Floyd's cycle detection?", options: ["O(n)", "O(log n)", "O(n\u00B2)", "O(1)"], answer: 3 },
+          { difficulty: "average", type: "output", q: "Does this list have a cycle? What does the function return?", code: "function hasCycle(head) {\n  let slow = head, fast = head;\n  while (fast && fast.next) {\n    slow = slow.next;\n    fast = fast.next.next;\n    if (slow === fast) return true;\n  }\n  return false;\n}\n// List: 1 -> 2 -> 3 -> 4 -> null", options: ["true", "false", "null", "Error"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Complete Floyd's cycle detection:", code: "function hasCycle(head) {\n  let slow = head, fast = head;\n  while (fast && ___BLANK1___) {\n    slow = slow.next;\n    fast = fast.___BLANK2___;\n    if (slow === fast) return true;\n  }\n  return false;\n}", blanks: [{ id: "BLANK1", options: ["slow.next", "fast.next", "fast.next.next", "slow"], answer: 1 }, { id: "BLANK2", options: ["next", "next.next", "prev", "val"], answer: 1 }] },
+          { difficulty: "average", q: "Why do we check both 'fast' and 'fast.next' in the while condition?", options: ["To count the number of nodes", "To prevent null pointer errors when accessing fast.next.next", "To make the algorithm faster", "To detect the start of the cycle"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Write a function to find the starting node of a cycle in a linked list. If no cycle exists, return null. (Hint: after detecting the cycle, reset one pointer to head.)", starterCode: "function detectCycleStart(head) {\n  // Your code here\n}", patterns: ["slow|fast", "while", "head|start|reset", "return"], sampleAnswer: "function detectCycleStart(head) {\n  let slow = head, fast = head;\n  while (fast && fast.next) {\n    slow = slow.next;\n    fast = fast.next.next;\n    if (slow === fast) {\n      slow = head;\n      while (slow !== fast) {\n        slow = slow.next;\n        fast = fast.next;\n      }\n      return slow;\n    }\n  }\n  return null;\n}" },
+          { difficulty: "advanced", type: "output", q: "What does this function return for two lists: 1->2->3->4->5 and 9->8->4->5 (merging at node 4)?", code: "function getIntersection(headA, headB) {\n  let a = headA, b = headB;\n  while (a !== b) {\n    a = a ? a.next : headB;\n    b = b ? b.next : headA;\n  }\n  return a ? a.val : null;\n}", options: ["5", "4", "null", "9"], answer: 1 },
+          { difficulty: "advanced", q: "An alternative to Floyd's algorithm is using a hash set. What is its trade-off?", options: ["Faster but uses O(n) space", "Same speed but uses O(n) space instead of O(1)", "Slower and uses more space", "Uses O(1) space but is O(n\u00B2) time"], answer: 1 },
+        ]
+      }
+    ]
+  },
+  {
+    id: 4, title: "Stacks & Queues", icon: "\u{1F9EE}", color: "#E74C3C", desc: "LIFO & FIFO Structures",
+    lessons: [
+      {
+        title: "Stack Operations",
+        slides: [
+          { type: "teach", content: "A **stack** follows **LIFO** (Last In, First Out). Think of a stack of plates \u2014 you add and remove from the top. Push adds, pop removes.", highlight: "LIFO" },
+          { type: "teach", content: "Stacks support **push** (add to top), **pop** (remove from top), and **peek** (view top without removing). All operations are O(1).", highlight: "push" },
+        ],
+        questions: [
+          { q: "What does LIFO stand for?", options: ["Last In, First Out", "Last In, First Off", "Least In, First Out", "Linear In, Fixed Out"], answer: 0 },
+          { q: "Which operation adds an element to a stack?", options: ["enqueue", "push", "insert", "append"], answer: 1 },
+          { q: "What is the time complexity of push and pop on a stack?", options: ["O(n)", "O(log n)", "O(1)", "O(n\u00B2)"], answer: 2 },
+          { difficulty: "average", type: "output", q: "What is the final output?", code: "const stack = [];\nstack.push(10);\nstack.push(20);\nstack.push(30);\nstack.pop();\nstack.push(40);\nconsole.log(stack.pop());\nconsole.log(stack[stack.length - 1]);", options: ["30, 20", "40, 20", "40, 10", "30, 10"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Complete the stack-based function to reverse a string:", code: "function reverseString(str) {\n  const stack = [];\n  for (let char of str) {\n    stack.___BLANK1___(char);\n  }\n  let result = '';\n  while (stack.length > 0) {\n    result += stack.___BLANK2___();\n  }\n  return result;\n}", blanks: [{ id: "BLANK1", options: ["pop", "push", "shift", "unshift"], answer: 1 }, { id: "BLANK2", options: ["push", "shift", "pop", "peek"], answer: 2 }] },
+          { difficulty: "average", q: "Which real-world feature uses a stack data structure?", options: ["Printer queue", "Undo/Redo in text editors", "Round-robin scheduling", "Breadth-first search"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Implement a MinStack that supports push, pop, peek, and getMin, all in O(1) time.", starterCode: "class MinStack {\n  constructor() {\n    // Your code here\n  }\n  push(val) {}\n  pop() {}\n  peek() {}\n  getMin() {}\n}", patterns: ["this\\.stack|this\\.min", "push|pop", "Math\\.min|min", "\\[.*length.*-.*1\\]|peek"], sampleAnswer: "class MinStack {\n  constructor() {\n    this.stack = [];\n    this.minStack = [];\n  }\n  push(val) {\n    this.stack.push(val);\n    const min = this.minStack.length === 0 ? val : Math.min(val, this.minStack[this.minStack.length - 1]);\n    this.minStack.push(min);\n  }\n  pop() {\n    this.stack.pop();\n    this.minStack.pop();\n  }\n  peek() {\n    return this.stack[this.stack.length - 1];\n  }\n  getMin() {\n    return this.minStack[this.minStack.length - 1];\n  }\n}" },
+          { difficulty: "advanced", type: "output", q: "What does getMin() return after these operations?", code: "const ms = new MinStack();\nms.push(5);\nms.push(3);\nms.push(7);\nms.push(1);\nms.pop(); // removes 1\nms.pop(); // removes 7\nconsole.log(ms.getMin());", options: ["1", "5", "3", "7"], answer: 2 },
+          { difficulty: "advanced", type: "order", q: "Order the steps to evaluate a postfix expression like '3 4 + 2 *' using a stack:", lines: ["Read the next token from the expression", "If it's a number, push it onto the stack", "If it's an operator, pop two operands from the stack", "Apply the operator: second_popped OP first_popped", "Push the result back onto the stack", "After processing all tokens, the result is on top of the stack"], correctOrder: [0, 1, 2, 3, 4, 5] },
+        ]
+      },
+      {
+        title: "Queue Types",
+        slides: [
+          { type: "teach", content: "A **queue** follows **FIFO** (First In, First Out). Like a line at a store \u2014 the first person in line is served first. Enqueue adds to the back, dequeue removes from the front.", highlight: "FIFO" },
+          { type: "teach", content: "A **priority queue** serves elements by priority, not arrival order. A **circular queue** wraps around using modular arithmetic to reuse space efficiently.", highlight: "priority queue" },
+        ],
+        questions: [
+          { q: "What does FIFO stand for?", options: ["First In, First Out", "Fast In, Fast Out", "First In, Final Out", "Fixed In, Fixed Out"], answer: 0 },
+          { q: "Which operation removes an element from the front of a queue?", options: ["pop", "push", "dequeue", "unshift"], answer: 2 },
+          { q: "In JavaScript, which array methods simulate a queue?", options: ["push and pop", "push and shift", "unshift and pop", "unshift and shift"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What is the output?", code: "const queue = [];\nqueue.push('A');\nqueue.push('B');\nqueue.push('C');\nconsole.log(queue.shift());\nqueue.push('D');\nconsole.log(queue.shift());\nconsole.log(queue);", options: ["'A', 'B', ['C', 'D']", "'C', 'D', ['A', 'B']", "'A', 'B', ['D']", "'A', 'C', ['B', 'D']"], answer: 0 },
+          { difficulty: "average", type: "fill", q: "Complete the circular queue enqueue operation:", code: "class CircularQueue {\n  constructor(k) {\n    this.queue = new Array(k);\n    this.head = 0;\n    this.tail = 0;\n    this.size = 0;\n    this.capacity = k;\n  }\n  enqueue(val) {\n    if (this.size === this.capacity) return false;\n    this.queue[this.___BLANK1___] = val;\n    this.tail = (this.tail + 1) % this.___BLANK2___;\n    this.size++;\n    return true;\n  }\n}", blanks: [{ id: "BLANK1", options: ["head", "tail", "size", "capacity"], answer: 1 }, { id: "BLANK2", options: ["size", "tail", "capacity", "head"], answer: 2 }] },
+          { difficulty: "average", q: "When would you use a priority queue instead of a regular queue?", options: ["When elements must be processed in insertion order", "When elements have varying importance levels", "When the queue has a fixed size", "When elements are strings"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Implement a queue using two stacks. The queue should support enqueue and dequeue operations.", starterCode: "class QueueWithStacks {\n  constructor() {\n    // Your code here\n  }\n  enqueue(val) {}\n  dequeue() {}\n}", patterns: ["stack|s1|s2|inStack|outStack", "push", "pop", "while|if.*length"], sampleAnswer: "class QueueWithStacks {\n  constructor() {\n    this.inStack = [];\n    this.outStack = [];\n  }\n  enqueue(val) {\n    this.inStack.push(val);\n  }\n  dequeue() {\n    if (this.outStack.length === 0) {\n      while (this.inStack.length > 0) {\n        this.outStack.push(this.inStack.pop());\n      }\n    }\n    return this.outStack.pop();\n  }\n}" },
+          { difficulty: "advanced", type: "output", q: "What does this queue-with-two-stacks output?", code: "const q = new QueueWithStacks();\nq.enqueue(1);\nq.enqueue(2);\nconsole.log(q.dequeue());\nq.enqueue(3);\nconsole.log(q.dequeue());\nconsole.log(q.dequeue());", options: ["1, 2, 3", "3, 2, 1", "1, 3, 2", "2, 1, 3"], answer: 0 },
+          { difficulty: "advanced", q: "What is the amortized time complexity of dequeue in a queue implemented with two stacks?", options: ["O(n) always", "O(1) amortized", "O(log n)", "O(n\u00B2)"], answer: 1 },
+        ]
+      },
+      {
+        title: "Bracket Matching & Applications",
+        slides: [
+          { type: "teach", content: "**Bracket matching** is a classic stack problem: push opening brackets, pop when you see a closing bracket. If the popped bracket doesn't match, the string is invalid.", highlight: "Bracket matching" },
+          { type: "teach", content: "Stacks and queues power many algorithms: **BFS** uses a queue, **DFS** uses a stack, **function calls** use the call stack, and **expression evaluation** uses stacks.", highlight: "BFS" },
+        ],
+        questions: [
+          { q: "Which data structure is ideal for matching brackets?", options: ["Queue", "Array", "Stack", "Linked list"], answer: 2 },
+          { q: "For the string '({[]})', is it valid?", options: ["No, wrong nesting", "Yes, all brackets match", "No, missing closing bracket", "No, wrong order"], answer: 1 },
+          { q: "Which traversal algorithm uses a queue?", options: ["Depth-First Search", "Breadth-First Search", "Binary Search", "Merge Sort"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What does this function return for '([)]'?", code: "function isValid(s) {\n  const stack = [];\n  const map = { ')': '(', ']': '[', '}': '{' };\n  for (let char of s) {\n    if ('([{'.includes(char)) {\n      stack.push(char);\n    } else {\n      if (stack.pop() !== map[char]) return false;\n    }\n  }\n  return stack.length === 0;\n}", options: ["true", "false", "null", "Error"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Complete the bracket matching function:", code: "function isValid(s) {\n  const stack = [];\n  const pairs = { ')': '(', ']': '[', '}': '{' };\n  for (let c of s) {\n    if ('([{'.includes(c)) {\n      stack.___BLANK1___(c);\n    } else {\n      if (stack.___BLANK2___() !== pairs[c]) return false;\n    }\n  }\n  return stack.length === 0;\n}", blanks: [{ id: "BLANK1", options: ["pop", "push", "shift", "unshift"], answer: 1 }, { id: "BLANK2", options: ["push", "shift", "peek", "pop"], answer: 3 }] },
+          { difficulty: "average", type: "order", q: "Order the steps to validate a bracket string:", lines: ["Initialize an empty stack", "Iterate through each character in the string", "If it's an opening bracket, push it onto the stack", "If it's a closing bracket, pop from stack and check if it matches", "If no match or stack is empty when popping, return false", "After iteration, return true only if stack is empty"], correctOrder: [0, 1, 2, 3, 4, 5] },
+          { difficulty: "advanced", type: "freeform", q: "Write a function that evaluates a mathematical expression in Reverse Polish Notation (postfix), e.g., ['2','1','+','3','*'] = 9.", starterCode: "function evalRPN(tokens) {\n  // Your code here\n}", patterns: ["stack|\\[\\]", "push", "pop", "\\+|\\-|\\*|\\/|switch|if"], sampleAnswer: "function evalRPN(tokens) {\n  const stack = [];\n  for (let token of tokens) {\n    if (['+','-','*','/'].includes(token)) {\n      const b = stack.pop();\n      const a = stack.pop();\n      if (token === '+') stack.push(a + b);\n      else if (token === '-') stack.push(a - b);\n      else if (token === '*') stack.push(a * b);\n      else stack.push(Math.trunc(a / b));\n    } else {\n      stack.push(Number(token));\n    }\n  }\n  return stack.pop();\n}" },
+          { difficulty: "advanced", type: "output", q: "What does evalRPN return for ['4','13','5','/','+']?", code: "function evalRPN(tokens) {\n  const stack = [];\n  for (let token of tokens) {\n    if (['+','-','*','/'].includes(token)) {\n      const b = stack.pop();\n      const a = stack.pop();\n      if (token === '+') stack.push(a + b);\n      else if (token === '-') stack.push(a - b);\n      else if (token === '*') stack.push(a * b);\n      else stack.push(Math.trunc(a / b));\n    } else {\n      stack.push(Number(token));\n    }\n  }\n  return stack.pop();\n}", options: ["6", "3", "17", "9"], answer: 0 },
+          { difficulty: "advanced", q: "A web browser's back/forward navigation uses which data structure combination?", options: ["Two queues", "Two stacks", "A stack and a queue", "A single doubly linked list"], answer: 1 },
+        ]
+      }
+    ]
+  },
+  {
+    id: 5, title: "Hash Maps & Sets", icon: "\u{1F9EE}", color: "#E74C3C", desc: "Key-Value Lookups",
+    lessons: [
+      {
+        title: "Hash Functions & Basics",
+        slides: [
+          { type: "teach", content: "A **hash map** (or hash table) stores key-value pairs. A **hash function** converts a key into an array index, enabling O(1) average-case lookups.", highlight: "hash map" },
+          { type: "teach", content: "In JavaScript, **objects** and **Map** act as hash maps. Map preserves insertion order and allows any key type, while objects coerce keys to strings.", highlight: "Map" },
+        ],
+        questions: [
+          { q: "What does a hash function do?", options: ["Sorts data alphabetically", "Converts a key into an array index", "Encrypts data", "Compresses data"], answer: 1 },
+          { q: "What is the average-case time complexity of hash map lookup?", options: ["O(n)", "O(log n)", "O(1)", "O(n\u00B2)"], answer: 2 },
+          { q: "In JavaScript, what is the difference between an object and a Map?", options: ["Objects are faster", "Map keys can be any type; object keys are strings", "Maps cannot be iterated", "There is no difference"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What does this code output?", code: "const map = new Map();\nmap.set('a', 1);\nmap.set('b', 2);\nmap.set('a', 3);\nconsole.log(map.get('a'));\nconsole.log(map.size);", options: ["1, 3", "3, 2", "3, 3", "1, 2"], answer: 1 },
+          { difficulty: "average", type: "fill", q: "Complete the hash map usage:", code: "const counts = new Map();\nconst word = 'hello';\nfor (let char of word) {\n  counts.set(char, (counts.___BLANK1___(char) || 0) + 1);\n}\nconsole.log(counts.___BLANK2___('l'));", blanks: [{ id: "BLANK1", options: ["set", "has", "get", "delete"], answer: 2 }, { id: "BLANK2", options: ["set", "has", "get", "delete"], answer: 2 }] },
+          { difficulty: "average", q: "What happens when two different keys hash to the same index?", options: ["The second key is rejected", "A collision occurs and must be resolved", "The hash map resizes", "The first key is overwritten"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Implement a simple hash map class with set, get, and delete methods using an array and a basic hash function.", starterCode: "class SimpleHashMap {\n  constructor(size) {\n    this.buckets = new Array(size).fill(null).map(() => []);\n    this.size = size;\n  }\n  // Your methods here\n}", patterns: ["hash|%|mod", "set|put", "get|find", "delete|remove"], sampleAnswer: "class SimpleHashMap {\n  constructor(size) {\n    this.buckets = new Array(size).fill(null).map(() => []);\n    this.size = size;\n  }\n  hash(key) {\n    let h = 0;\n    for (let char of String(key)) h += char.charCodeAt(0);\n    return h % this.size;\n  }\n  set(key, val) {\n    const idx = this.hash(key);\n    const bucket = this.buckets[idx];\n    const found = bucket.find(([k]) => k === key);\n    if (found) found[1] = val;\n    else bucket.push([key, val]);\n  }\n  get(key) {\n    const idx = this.hash(key);\n    const found = this.buckets[idx].find(([k]) => k === key);\n    return found ? found[1] : undefined;\n  }\n  delete(key) {\n    const idx = this.hash(key);\n    const bucket = this.buckets[idx];\n    const i = bucket.findIndex(([k]) => k === key);\n    if (i !== -1) bucket.splice(i, 1);\n  }\n}" },
+          { difficulty: "advanced", type: "output", q: "What is the worst-case time complexity of a hash map lookup and when does it occur?", code: "// Consider a hash map where all keys hash to the same index\n// All n entries are in one bucket (linked list)\n// Lookup must traverse the entire bucket", options: ["O(1) - hash maps are always constant", "O(log n) - it uses binary search in the bucket", "O(n) - when all keys collide into one bucket", "O(n\u00B2) - nested search required"], answer: 2 },
+          { difficulty: "advanced", q: "Why should a good hash function distribute keys uniformly?", options: ["To make the hash map use less memory", "To minimize collisions and maintain O(1) average performance", "To keep keys sorted", "To allow duplicate keys"], answer: 1 },
+        ]
+      },
+      {
+        title: "Collision Handling & Frequency Counting",
+        slides: [
+          { type: "teach", content: "**Chaining** handles collisions by storing multiple entries at the same index using a linked list or array. **Open addressing** finds the next empty slot instead.", highlight: "Chaining" },
+          { type: "teach", content: "**Frequency counting** is a common hash map pattern: iterate through data and count occurrences. This is O(n) time and O(k) space where k is unique elements.", highlight: "Frequency counting" },
+        ],
+        questions: [
+          { q: "What is chaining in hash map collision handling?", options: ["Linking hash maps together", "Storing multiple entries at the same index using a list", "Creating a chain of hash functions", "Using multiple hash maps"], answer: 1 },
+          { q: "What is the time complexity of counting the frequency of all elements in an array?", options: ["O(n\u00B2)", "O(n log n)", "O(n)", "O(1)"], answer: 2 },
+          { q: "In open addressing, what happens when a collision occurs?", options: ["The entry is discarded", "The algorithm probes for the next empty slot", "The hash map doubles in size", "The key is rehashed with a different function only"], answer: 1 },
+          { difficulty: "average", type: "output", q: "What does this function return for [1, 2, 2, 3, 3, 3]?", code: "function mostFrequent(arr) {\n  const freq = {};\n  for (let num of arr) {\n    freq[num] = (freq[num] || 0) + 1;\n  }\n  let maxCount = 0, result = null;\n  for (let key in freq) {\n    if (freq[key] > maxCount) {\n      maxCount = freq[key];\n      result = Number(key);\n    }\n  }\n  return result;\n}", options: ["1", "2", "3", "6"], answer: 2 },
+          { difficulty: "average", type: "fill", q: "Complete the frequency counter:", code: "function charFrequency(str) {\n  const freq = new ___BLANK1___();\n  for (let char of str) {\n    freq.set(char, (freq.get(char) || ___BLANK2___) + 1);\n  }\n  return freq;\n}", blanks: [{ id: "BLANK1", options: ["Array", "Set", "Map", "Object"], answer: 2 }, { id: "BLANK2", options: ["1", "0", "null", "-1"], answer: 1 }] },
+          { difficulty: "average", type: "output", q: "What does this function return for ('anagram', 'nagaram')?", code: "function isAnagram(s, t) {\n  if (s.length !== t.length) return false;\n  const counts = {};\n  for (let c of s) counts[c] = (counts[c] || 0) + 1;\n  for (let c of t) {\n    if (!counts[c]) return false;\n    counts[c]--;\n  }\n  return true;\n}", options: ["false", "true", "undefined", "Error"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Write a function that groups anagrams together from an array of strings. For example, ['eat','tea','tan','ate','nat','bat'] returns [['eat','tea','ate'],['tan','nat'],['bat']].", starterCode: "function groupAnagrams(strs) {\n  // Your code here\n}", patterns: ["Map|\\{\\}", "sort|split", "push|add", "values|entries|Object"], sampleAnswer: "function groupAnagrams(strs) {\n  const map = new Map();\n  for (let str of strs) {\n    const key = str.split('').sort().join('');\n    if (!map.has(key)) map.set(key, []);\n    map.get(key).push(str);\n  }\n  return Array.from(map.values());\n}" },
+          { difficulty: "advanced", type: "output", q: "What does this function return for [1,1,1,2,2,3] and k=2?", code: "function topKFrequent(nums, k) {\n  const freq = new Map();\n  for (let n of nums) freq.set(n, (freq.get(n) || 0) + 1);\n  return [...freq.entries()]\n    .sort((a, b) => b[1] - a[1])\n    .slice(0, k)\n    .map(e => e[0]);\n}", options: ["[1, 2]", "[2, 3]", "[1, 3]", "[3, 2, 1]"], answer: 0 },
+          { difficulty: "advanced", type: "order", q: "Order the steps to find the first character that appears exactly once:", lines: ["Create a frequency map from the string", "Iterate through the string counting each character", "Iterate through the string a second time", "For each character, check if its frequency is 1", "Return the first character with frequency 1", "If none found, return null or -1"], correctOrder: [0, 1, 2, 3, 4, 5] },
+        ]
+      },
+      {
+        title: "Two-Sum & Patterns",
+        slides: [
+          { type: "teach", content: "The **Two Sum** pattern uses a hash map to find pairs: for each element, check if its complement (target - current) exists in the map. This gives O(n) time.", highlight: "Two Sum" },
+          { type: "teach", content: "A **Set** stores unique values with O(1) add/delete/lookup. Use sets to track seen elements, check for duplicates, or compute intersections and unions.", highlight: "Set" },
+        ],
+        questions: [
+          { q: "Why is the hash map approach to Two Sum O(n) instead of O(n\u00B2)?", options: ["It sorts the array first", "It checks each element against the map in O(1) instead of scanning the whole array", "It skips duplicate elements", "It uses binary search"], answer: 1 },
+          { q: "What does a Set guarantee about its elements?", options: ["They are sorted", "They are all numbers", "They are unique", "They are immutable"], answer: 2 },
+          { q: "What is the time complexity of checking if a Set contains a value?", options: ["O(n)", "O(log n)", "O(1)", "O(n\u00B2)"], answer: 2 },
+          { difficulty: "average", type: "output", q: "What does this function return for ([2, 7, 11, 15], 9)?", code: "function twoSum(nums, target) {\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) {\n      return [map.get(complement), i];\n    }\n    map.set(nums[i], i);\n  }\n  return [];\n}", options: ["[0, 1]", "[1, 0]", "[2, 7]", "[0, 2]"], answer: 0 },
+          { difficulty: "average", type: "fill", q: "Complete the Two Sum function:", code: "function twoSum(nums, target) {\n  const seen = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = ___BLANK1___ - nums[i];\n    if (seen.___BLANK2___(complement)) {\n      return [seen.get(complement), i];\n    }\n    seen.set(nums[i], i);\n  }\n}", blanks: [{ id: "BLANK1", options: ["nums[i]", "target", "i", "complement"], answer: 1 }, { id: "BLANK2", options: ["get", "set", "has", "delete"], answer: 2 }] },
+          { difficulty: "average", type: "output", q: "What does this function return for ([1, 2, 3, 2, 1], [2, 3, 4])?", code: "function intersection(arr1, arr2) {\n  const set1 = new Set(arr1);\n  const result = new Set();\n  for (let num of arr2) {\n    if (set1.has(num)) result.add(num);\n  }\n  return [...result];\n}", options: ["[1, 2, 3]", "[2, 3]", "[4]", "[1, 2, 3, 4]"], answer: 1 },
+          { difficulty: "advanced", type: "freeform", q: "Write a function that finds the longest consecutive sequence in an unsorted array. For example, [100, 4, 200, 1, 3, 2] returns 4 (the sequence 1,2,3,4). Must be O(n) time.", starterCode: "function longestConsecutive(nums) {\n  // Your code here\n}", patterns: ["Set|set", "has|includes", "while|for", "Math\\.max|max|longest"], sampleAnswer: "function longestConsecutive(nums) {\n  const set = new Set(nums);\n  let longest = 0;\n  for (let num of set) {\n    if (!set.has(num - 1)) {\n      let current = num;\n      let streak = 1;\n      while (set.has(current + 1)) {\n        current++;\n        streak++;\n      }\n      longest = Math.max(longest, streak);\n    }\n  }\n  return longest;\n}" },
+          { difficulty: "advanced", type: "output", q: "What does this function return for [100, 4, 200, 1, 3, 2]?", code: "function longestConsecutive(nums) {\n  const set = new Set(nums);\n  let longest = 0;\n  for (let num of set) {\n    if (!set.has(num - 1)) {\n      let curr = num, streak = 1;\n      while (set.has(curr + 1)) { curr++; streak++; }\n      longest = Math.max(longest, streak);\n    }\n  }\n  return longest;\n}", options: ["3", "4", "6", "200"], answer: 1 },
+          { difficulty: "advanced", type: "order", q: "Order the steps to solve Two Sum with a hash map:", lines: ["Create an empty hash map", "Iterate through the array with index", "Calculate complement = target - nums[i]", "Check if complement exists in the map", "If found, return [map.get(complement), i]", "If not found, store nums[i] with its index in the map"], correctOrder: [0, 1, 2, 3, 4, 5] },
+        ]
+      }
+    ]
+  }
+];

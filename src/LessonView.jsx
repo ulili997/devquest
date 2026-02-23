@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { DIFFICULTY_CONFIG } from "./data/difficulty";
 import Hearts from "./components/Hearts";
 import OutputQuestion from "./components/OutputQuestion";
 import FillBlankQuestion from "./components/FillBlankQuestion";
 import OrderQuestion from "./components/OrderQuestion";
 import FreeformQuestion from "./components/FreeformQuestion";
 
-export default function LessonView({ lesson, moduleColor, onComplete, hearts, onLoseHeart }) {
+export default function LessonView({ lesson, moduleColor, onComplete, hearts, onLoseHeart, difficulty = "beginner" }) {
+  const config = DIFFICULTY_CONFIG[difficulty] || DIFFICULTY_CONFIG.beginner;
+  const questions = lesson.questions.filter(q => (q.difficulty || "beginner") === difficulty);
   const [phase, setPhase] = useState("slides");
   const [slideIdx, setSlideIdx] = useState(0);
   const [qIdx, setQIdx] = useState(0);
@@ -16,7 +19,7 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
   const [shake, setShake] = useState(false);
   const [showContinue, setShowContinue] = useState(false);
 
-  const totalSteps = lesson.slides.length + lesson.questions.length;
+  const totalSteps = lesson.slides.length + questions.length;
   const currentStep = phase === "slides" ? slideIdx : lesson.slides.length + qIdx;
   const progress = ((currentStep + (answered ? 1 : 0)) / totalSteps) * 100;
 
@@ -48,7 +51,7 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
     setSelected(idx);
     setAnswered(true);
     setShowContinue(true);
-    const isCorrect = idx === lesson.questions[qIdx].answer;
+    const isCorrect = idx === questions[qIdx].answer;
     if (isCorrect) setCorrect(c => c + 1);
     else {
       setWrong(w => w + 1);
@@ -59,7 +62,7 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
   };
 
   const handleNextQ = () => {
-    if (qIdx < lesson.questions.length - 1) {
+    if (qIdx < questions.length - 1) {
       setQIdx(q => q + 1);
       setSelected(null);
       setAnswered(false);
@@ -70,12 +73,12 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
   };
 
   const slide = phase === "slides" ? lesson.slides[slideIdx] : null;
-  const question = phase === "quiz" ? lesson.questions[qIdx] : null;
+  const question = phase === "quiz" ? questions[qIdx] : null;
   const qType = question?.type || "mcq";
 
-  // Results XP calculation: full correct = 10 XP, half credit (freeform self-grade) = 5 XP
-  const xpEarned = Math.floor(correct) * 10 + (correct % 1 > 0 ? 5 : 0);
-  const isPerfect = Math.floor(correct) === lesson.questions.length && correct % 1 === 0;
+  // Results XP calculation: uses difficulty-scaled XP per question
+  const xpEarned = Math.floor(correct) * config.xpPerQuestion + (correct % 1 > 0 ? Math.floor(config.xpPerQuestion / 2) : 0);
+  const isPerfect = Math.floor(correct) === questions.length && correct % 1 === 0;
 
   return (
     <div style={{ minHeight: "100vh", background: "#131F24", display: "flex", flexDirection: "column" }}>
@@ -128,10 +131,17 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
             maxWidth: 560, width: "100%",
             animation: shake ? "shakeX 0.4s ease" : "slideIn 0.3s ease",
           }}>
-            <div style={{
-              fontSize: "0.75rem", fontWeight: 800, color: "#89E219", letterSpacing: "0.1em",
-              textTransform: "uppercase", marginBottom: 12, textAlign: "center",
-            }}>QUESTION {qIdx + 1} OF {lesson.questions.length}</div>
+            <div style={{ textAlign: "center", marginBottom: 12 }}>
+              <span style={{
+                display: "inline-block", fontSize: "0.7rem", fontWeight: 800,
+                padding: "2px 10px", borderRadius: 8, marginBottom: 6,
+                background: `${config.color}22`, color: config.color,
+              }}>{config.emoji} {config.label}</span>
+              <div style={{
+                fontSize: "0.75rem", fontWeight: 800, color: "#89E219", letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}>QUESTION {qIdx + 1} OF {questions.length}</div>
+            </div>
 
             {/* MCQ (default / no type) */}
             {qType === "mcq" && (
@@ -218,12 +228,12 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
         {phase === "result" && (
           <div style={{ maxWidth: 480, width: "100%", textAlign: "center", animation: "slideIn 0.4s ease" }}>
             <div style={{ fontSize: "4rem", marginBottom: 16 }}>
-              {isPerfect ? "\u{1F389}" : Math.floor(correct) >= lesson.questions.length / 2 ? "\u{1F44F}" : "\u{1F4AA}"}
+              {isPerfect ? "\u{1F389}" : Math.floor(correct) >= questions.length / 2 ? "\u{1F44F}" : "\u{1F4AA}"}
             </div>
             <div style={{
               fontSize: "1.8rem", fontWeight: 900, color: "#fff", fontFamily: "'Nunito', sans-serif",
               marginBottom: 8,
-            }}>{isPerfect ? "Perfect!" : Math.floor(correct) >= lesson.questions.length / 2 ? "Great Job!" : "Keep Practicing!"}</div>
+            }}>{isPerfect ? "Perfect!" : Math.floor(correct) >= questions.length / 2 ? "Great Job!" : "Keep Practicing!"}</div>
             <div style={{ color: "#89E219", fontSize: "1.2rem", fontWeight: 800, marginBottom: 32, fontFamily: "'Nunito', sans-serif" }}>
               +{xpEarned} XP earned
             </div>

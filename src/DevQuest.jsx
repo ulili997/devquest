@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { MODULES, TOTAL_LESSONS } from "./data/modules";
+import { COURSES, getModules, getTotalLessons } from "./data/modules";
+import { DIFFICULTY_CONFIG } from "./data/difficulty";
 import Confetti from "./components/Confetti";
 import XPBurst from "./components/XPBurst";
 import Hearts from "./components/Hearts";
 import ProgressRing from "./components/ProgressRing";
 import LessonView from "./LessonView";
+import DifficultyModal from "./components/DifficultyModal";
+import CourseSelector from "./components/CourseSelector";
 
 // Persistent storage helpers
 const STORAGE_KEY = "devquest-state";
@@ -37,6 +40,14 @@ const saveFirestore = async (uid, state) => {
   await setDoc(doc(db, "users", uid), { progress: state }, { merge: true });
 };
 
+// Migration: prefix old keys with "fullstack:"
+const migrateCompletedLessons = (lessons) => {
+  return lessons.map(key => {
+    if (key.includes(":")) return key; // already migrated
+    return `fullstack:${key}`;
+  });
+};
+
 const DEFAULT_STATE = {
   xp: 0,
   streak: 0,
@@ -45,7 +56,6 @@ const DEFAULT_STATE = {
   completedLessons: [],
   currentModule: 0,
   level: 1,
-  gems: 50,
   achievements: [],
 };
 
@@ -54,11 +64,13 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
   const [state, setState] = useState(DEFAULT_STATE);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState("home");
+  const [activeCourse, setActiveCourse] = useState(null);
   const [activeLesson, setActiveLesson] = useState(null);
   const [activeModuleIdx, setActiveModuleIdx] = useState(null);
   const [confetti, setConfetti] = useState(false);
   const [xpBurst, setXpBurst] = useState({ visible: false, amount: 0 });
   const [expandedModule, setExpandedModule] = useState(null);
+  const [pendingLesson, setPendingLesson] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -75,6 +87,25 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
         else if (last === yesterday) { saved.streak += 1; saved.lastActiveDate = today; }
         else { saved.streak = 1; saved.lastActiveDate = today; }
         if (last !== today) saved.hearts = 5;
+        // Migration: tag existing completions as beginner
+        if (!saved._difficultyMigrated && saved.completedLessons?.length) {
+          const extra = [];
+          for (const key of saved.completedLessons) {
+            if (!key.includes("-", key.indexOf("-") + 1)) {
+              const bKey = `${key}-beginner`;
+              if (!saved.completedLessons.includes(bKey)) extra.push(bKey);
+            }
+          }
+          if (extra.length) saved.completedLessons = [...saved.completedLessons, ...extra];
+          saved._difficultyMigrated = true;
+        }
+        // Migration: prefix old keys with "fullstack:"
+        if (!saved._courseMigrated && saved.completedLessons?.length) {
+          saved.completedLessons = migrateCompletedLessons(saved.completedLessons);
+          saved._courseMigrated = true;
+        }
+        // Remove gems from old state if present
+        delete saved.gems;
         setState(saved);
       } else {
         setState(s => ({ ...s, streak: 1, lastActiveDate: new Date().toDateString() }));
@@ -90,29 +121,52 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
     if (uid) saveFirestore(uid, state).catch(() => {});
   }, [state, loaded, uid]);
 
-  const getLessonKey = (mIdx, lIdx) => `${mIdx}-${lIdx}`;
+  const modules = activeCourse ? getModules(activeCourse) : [];
+  const totalLessons = activeCourse ? getTotalLessons(activeCourse) : 0;
+
+  const getLessonKey = (mIdx, lIdx) => `${activeCourse}:${mIdx}-${lIdx}`;
+  const getDifficultyKey = (mIdx, lIdx, diff) => `${activeCourse}:${mIdx}-${lIdx}-${diff}`;
   const isLessonComplete = (mIdx, lIdx) => state.completedLessons.includes(getLessonKey(mIdx, lIdx));
-  const isModuleComplete = (mIdx) => MODULES[mIdx].lessons.every((_, lIdx) => isLessonComplete(mIdx, lIdx));
+  const isModuleComplete = (mIdx) => modules[mIdx]?.lessons.every((_, lIdx) => isLessonComplete(mIdx, lIdx));
   const isModuleUnlocked = (mIdx) => mIdx === 0 || isModuleComplete(mIdx - 1);
-  const completedCount = state.completedLessons.length;
-  const overallProgress = Math.round((completedCount / TOTAL_LESSONS) * 100);
+  const getCompletedDifficulties = (mIdx, lIdx) =>
+    ["beginner", "average", "advanced"].filter(d => state.completedLessons.includes(getDifficultyKey(mIdx, lIdx, d)));
+
+  const completedCount = activeCourse
+    ? state.completedLessons.filter(k => {
+        if (!k.startsWith(`${activeCourse}:`)) return false;
+        const rest = k.slice(activeCourse.length + 1);
+        const parts = rest.split("-");
+        return parts.length === 2;
+      }).length
+    : 0;
+  const overallProgress = totalLessons ? Math.round((completedCount / totalLessons) * 100) : 0;
   const level = Math.floor(state.xp / 100) + 1;
 
   const startLesson = (mIdx, lIdx) => {
     if (!isModuleUnlocked(mIdx)) return;
     if (state.hearts <= 0) return;
-    setActiveModuleIdx(mIdx);
-    setActiveLesson({ mIdx, lIdx });
+    setPendingLesson({ mIdx, lIdx });
+  };
+
+  const confirmDifficulty = (difficulty) => {
+    if (!pendingLesson) return;
+    setActiveModuleIdx(pendingLesson.mIdx);
+    setActiveLesson({ ...pendingLesson, difficulty });
+    setPendingLesson(null);
     setView("lesson");
   };
 
   const completeLesson = (xpEarned, perfect) => {
-    const key = getLessonKey(activeLesson.mIdx, activeLesson.lIdx);
+    const baseKey = getLessonKey(activeLesson.mIdx, activeLesson.lIdx);
+    const diffKey = getDifficultyKey(activeLesson.mIdx, activeLesson.lIdx, activeLesson.difficulty);
+    const config = DIFFICULTY_CONFIG[activeLesson.difficulty] || DIFFICULTY_CONFIG.beginner;
     setState(prev => {
-      const newCompleted = prev.completedLessons.includes(key) ? prev.completedLessons : [...prev.completedLessons, key];
-      const bonusXp = perfect ? 5 : 0;
-      const newGems = prev.gems + (perfect ? 10 : 2);
-      return { ...prev, xp: prev.xp + xpEarned + bonusXp, completedLessons: newCompleted, gems: newGems };
+      let newCompleted = [...prev.completedLessons];
+      if (!newCompleted.includes(baseKey)) newCompleted.push(baseKey);
+      if (!newCompleted.includes(diffKey)) newCompleted.push(diffKey);
+      const bonusXp = perfect ? config.perfectBonus : 0;
+      return { ...prev, xp: prev.xp + xpEarned + bonusXp, completedLessons: newCompleted };
     });
     setXpBurst({ visible: true, amount: xpEarned });
     setTimeout(() => setXpBurst({ visible: false, amount: 0 }), 1300);
@@ -125,6 +179,16 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
     setState(prev => ({ ...prev, hearts: Math.max(0, prev.hearts - 1) }));
   };
 
+  const selectCourse = (courseId) => {
+    setActiveCourse(courseId);
+    setExpandedModule(null);
+  };
+
+  const backToCourses = () => {
+    setActiveCourse(null);
+    setExpandedModule(null);
+  };
+
   if (!loaded) return (
     <div style={{ minHeight: "100vh", background: "#131F24", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ color: "#58CC02", fontSize: "2rem", fontWeight: 900, fontFamily: "'Nunito', sans-serif", animation: "pulse 1.5s infinite" }}>
@@ -134,19 +198,21 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
   );
 
   if (view === "lesson" && activeLesson) {
-    const mod = MODULES[activeLesson.mIdx];
+    const mod = modules[activeLesson.mIdx];
     const lesson = mod.lessons[activeLesson.lIdx];
     return (
       <>
         <Confetti active={confetti} />
         <XPBurst {...xpBurst} />
         <LessonView lesson={lesson} moduleColor={mod.color} hearts={state.hearts}
+          difficulty={activeLesson.difficulty || "beginner"}
           onComplete={completeLesson} onLoseHeart={loseHeart} />
       </>
     );
   }
 
   if (view === "profile") {
+    const courseEntries = Object.values(COURSES);
     return (
       <div style={{ minHeight: "100vh", background: "#131F24", fontFamily: "'Nunito', sans-serif", padding: "0 0 100px" }}>
         <div style={{ background: "linear-gradient(180deg, #1a2f38 0%, #131F24 100%)", padding: "40px 20px 32px", textAlign: "center", position: "relative" }}>
@@ -159,7 +225,7 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
             fontSize: "2rem", fontWeight: 900, color: "#131F24", boxShadow: "0 0 30px rgba(88,204,2,0.3)",
           }}>{level}</div>
           <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#fff" }}>Level {level}</div>
-          <div style={{ color: "#89E219", fontWeight: 700 }}>Full Stack Developer</div>
+          <div style={{ color: "#89E219", fontWeight: 700 }}>Developer</div>
           {userEmail && (
             <div style={{ color: "#A0A0A0", fontSize: "0.8rem", fontWeight: 600, marginTop: 8 }}>{userEmail}</div>
           )}
@@ -172,11 +238,10 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
           )}
         </div>
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 20px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32 }}>
             {[
               { label: "Total XP", value: state.xp, icon: "\u26A1", color: "#FFC800" },
               { label: "Streak", value: `${state.streak} day${state.streak !== 1 ? "s" : ""}`, icon: "\u{1F525}", color: "#FF9600" },
-              { label: "Gems", value: state.gems, icon: "\u{1F48E}", color: "#1CB0F6" },
             ].map(s => (
               <div key={s.label} style={{
                 background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: "16px 12px", textAlign: "center",
@@ -188,23 +253,47 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
               </div>
             ))}
           </div>
-          <div style={{ color: "#fff", fontWeight: 800, fontSize: "1.1rem", marginBottom: 16 }}>Module Progress</div>
-          {MODULES.map((m, i) => {
-            const done = m.lessons.filter((_, li) => isLessonComplete(i, li)).length;
-            const pct = Math.round((done / m.lessons.length) * 100);
+
+          {/* Per-course progress */}
+          {courseEntries.map(course => {
+            const cModules = course.modules;
+            let cTotal = 0;
+            let cDone = 0;
+            cModules.forEach((mod, mIdx) => {
+              mod.lessons.forEach((_, lIdx) => {
+                cTotal++;
+                if (state.completedLessons.includes(`${course.id}:${mIdx}-${lIdx}`)) cDone++;
+              });
+            });
+            const cPct = cTotal ? Math.round((cDone / cTotal) * 100) : 0;
             return (
-              <div key={m.id} style={{
-                display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-              }}>
-                <span style={{ fontSize: "1.3rem" }}>{m.icon}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: "#E5E5E5", fontWeight: 700, fontSize: "0.9rem" }}>{m.title}</div>
-                  <div style={{ height: 6, background: "rgba(255,255,255,0.1)", borderRadius: 99, marginTop: 4 }}>
-                    <div style={{ height: "100%", background: m.color, borderRadius: 99, width: `${pct}%`, transition: "width 0.3s" }} />
-                  </div>
+              <div key={course.id} style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: "1.2rem" }}>{course.icon}</span>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: "1rem" }}>{course.title}</span>
+                  <span style={{ color: course.color, fontWeight: 800, fontSize: "0.85rem", marginLeft: "auto" }}>{cPct}%</span>
                 </div>
-                <span style={{ color: m.color, fontWeight: 800, fontSize: "0.85rem" }}>{done}/{m.lessons.length}</span>
+                {cModules.map((m, i) => {
+                  const done = m.lessons.filter((_, li) =>
+                    state.completedLessons.includes(`${course.id}:${i}-${li}`)
+                  ).length;
+                  const pct = Math.round((done / m.lessons.length) * 100);
+                  return (
+                    <div key={m.id} style={{
+                      display: "flex", alignItems: "center", gap: 12, padding: "8px 0",
+                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    }}>
+                      <span style={{ fontSize: "1rem" }}>{m.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: "#E5E5E5", fontWeight: 700, fontSize: "0.85rem" }}>{m.title}</div>
+                        <div style={{ height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 99, marginTop: 3 }}>
+                          <div style={{ height: "100%", background: m.color, borderRadius: 99, width: `${pct}%`, transition: "width 0.3s" }} />
+                        </div>
+                      </div>
+                      <span style={{ color: m.color, fontWeight: 800, fontSize: "0.8rem" }}>{done}/{m.lessons.length}</span>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
@@ -213,7 +302,27 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
     );
   }
 
-  // HOME VIEW
+  // COURSE SELECTOR
+  if (!activeCourse) {
+    return (
+      <>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { background: #131F24; }
+        `}</style>
+        <CourseSelector
+          courses={COURSES}
+          completedLessons={state.completedLessons}
+          onSelect={selectCourse}
+        />
+      </>
+    );
+  }
+
+  const courseData = COURSES[activeCourse];
+
+  // HOME VIEW (within a course)
   return (
     <div style={{ minHeight: "100vh", background: "#131F24", fontFamily: "'Nunito', sans-serif", paddingBottom: 80 }}>
       <Confetti active={confetti} />
@@ -241,17 +350,17 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
         <div style={{ maxWidth: 560, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: "1.5rem" }}>{"\u{1F5A5}\uFE0F"}</span>
-              <span style={{ fontWeight: 900, fontSize: "1.2rem", color: "#58CC02", letterSpacing: "-0.02em" }}>DevQuest</span>
+              <button onClick={backToCourses} style={{
+                background: "none", border: "none", color: "#89E219", fontSize: "1.1rem",
+                fontWeight: 800, cursor: "pointer", fontFamily: "'Nunito', sans-serif", padding: 0,
+              }}>{"\u2190"}</button>
+              <span style={{ fontSize: "1.3rem" }}>{courseData.icon}</span>
+              <span style={{ fontWeight: 900, fontSize: "1.1rem", color: courseData.color, letterSpacing: "-0.02em" }}>{courseData.title}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <span style={{ fontSize: "1.1rem" }}>{"\u{1F525}"}</span>
                 <span style={{ color: "#FF9600", fontWeight: 800, fontSize: "0.95rem" }}>{state.streak}</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: "1.1rem" }}>{"\u{1F48E}"}</span>
-                <span style={{ color: "#1CB0F6", fontWeight: 800, fontSize: "0.95rem" }}>{state.gems}</span>
               </div>
               <Hearts count={state.hearts} />
               <button onClick={() => setView("profile")} style={{
@@ -265,12 +374,12 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ flex: 1, height: 10, background: "rgba(255,255,255,0.08)", borderRadius: 99 }}>
               <div style={{
-                height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #58CC02, #89E219)",
+                height: "100%", borderRadius: 99, background: `linear-gradient(90deg, ${courseData.color}, ${courseData.color}CC)`,
                 width: `${state.xp % 100}%`, transition: "width 0.5s ease",
-                boxShadow: "0 0 10px rgba(88,204,2,0.3)",
+                boxShadow: `0 0 10px ${courseData.color}44`,
               }} />
             </div>
-            <span style={{ color: "#89E219", fontWeight: 800, fontSize: "0.8rem", minWidth: 50, textAlign: "right" }}>
+            <span style={{ color: courseData.color, fontWeight: 800, fontSize: "0.8rem", minWidth: 50, textAlign: "right" }}>
               {state.xp % 100}/100
             </span>
           </div>
@@ -288,7 +397,7 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
           <div>
             <div style={{ color: "#fff", fontWeight: 800, fontSize: "1.1rem" }}>{overallProgress}% Complete</div>
             <div style={{ color: "#A0A0A0", fontSize: "0.85rem", fontWeight: 600 }}>
-              {completedCount} of {TOTAL_LESSONS} lessons finished
+              {completedCount} of {totalLessons} lessons finished
             </div>
           </div>
           <div style={{ marginLeft: "auto", color: "#FFC800", fontWeight: 900, fontSize: "1.3rem" }}>
@@ -304,7 +413,7 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
             background: "rgba(255,255,255,0.06)", borderRadius: 99, zIndex: 0,
           }} />
 
-          {MODULES.map((mod, mIdx) => {
+          {modules.map((mod, mIdx) => {
             const unlocked = isModuleUnlocked(mIdx);
             const complete = isModuleComplete(mIdx);
             const doneLessons = mod.lessons.filter((_, li) => isLessonComplete(mIdx, li)).length;
@@ -394,7 +503,7 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
                               {lesson.title}
                             </div>
                             <div style={{ color: "#777", fontSize: "0.75rem", fontWeight: 600 }}>
-                              {lesson.questions.length} questions {"\u2022"} +{lesson.questions.length * 10} XP
+                              3 questions {"\u2022"} per difficulty
                             </div>
                           </div>
                           <span style={{ color: lComplete ? "#58CC02" : mod.color, fontSize: "0.85rem", fontWeight: 800 }}>
@@ -409,6 +518,16 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
             );
           })}
         </div>
+
+        {/* Difficulty Modal */}
+        {pendingLesson && (
+          <DifficultyModal
+            lessonTitle={modules[pendingLesson.mIdx].lessons[pendingLesson.lIdx].title}
+            completedDifficulties={getCompletedDifficulties(pendingLesson.mIdx, pendingLesson.lIdx)}
+            onSelect={confirmDifficulty}
+            onClose={() => setPendingLesson(null)}
+          />
+        )}
 
         {/* Hearts warning */}
         {state.hearts <= 0 && (
