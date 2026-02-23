@@ -399,20 +399,35 @@ const MODULES = [
 
 const TOTAL_LESSONS = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
 
-// Persistent storage helpers using localStorage
+// Persistent storage helpers
 const STORAGE_KEY = "devquest-state";
 
-const loadState = () => {
+const loadLocal = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 };
 
-const saveState = (state) => {
+const saveLocal = (state) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) { console.error("Save failed:", e); }
+  } catch { /* ignore */ }
+};
+
+const loadFirestore = async (uid) => {
+  const { getFirestore, doc, getDoc } = await import("firebase/firestore");
+  const { app } = await import("./firebase");
+  const db = getFirestore(app);
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.exists() ? snap.data().progress : null;
+};
+
+const saveFirestore = async (uid, state) => {
+  const { getFirestore, doc, setDoc } = await import("firebase/firestore");
+  const { app } = await import("./firebase");
+  const db = getFirestore(app);
+  await setDoc(doc(db, "users", uid), { progress: state }, { merge: true });
 };
 
 const DEFAULT_STATE = {
@@ -685,7 +700,7 @@ function LessonView({ lesson, moduleColor, onComplete, hearts, onLoseHeart }) {
 }
 
 // Main App
-export default function DevQuest() {
+export default function DevQuest({ uid, userEmail, onLogout }) {
   const [state, setState] = useState(DEFAULT_STATE);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState("home");
@@ -696,23 +711,34 @@ export default function DevQuest() {
   const [expandedModule, setExpandedModule] = useState(null);
 
   useEffect(() => {
-    const saved = loadState();
-    if (saved) {
-      const today = new Date().toDateString();
-      const last = saved.lastActiveDate;
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      if (last === today) { /* same day */ }
-      else if (last === yesterday) { saved.streak += 1; saved.lastActiveDate = today; }
-      else { saved.streak = 1; saved.lastActiveDate = today; }
-      if (last !== today) saved.hearts = 5;
-      setState(saved);
-    } else {
-      setState(s => ({ ...s, streak: 1, lastActiveDate: new Date().toDateString() }));
-    }
-    setLoaded(true);
-  }, []);
+    const init = async () => {
+      let saved = null;
+      if (uid) {
+        try { saved = await loadFirestore(uid); } catch { /* fall through */ }
+      }
+      if (!saved) saved = loadLocal();
+      if (saved) {
+        const today = new Date().toDateString();
+        const last = saved.lastActiveDate;
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        if (last === today) { /* same day */ }
+        else if (last === yesterday) { saved.streak += 1; saved.lastActiveDate = today; }
+        else { saved.streak = 1; saved.lastActiveDate = today; }
+        if (last !== today) saved.hearts = 5;
+        setState(saved);
+      } else {
+        setState(s => ({ ...s, streak: 1, lastActiveDate: new Date().toDateString() }));
+      }
+      setLoaded(true);
+    };
+    init();
+  }, [uid]);
 
-  useEffect(() => { if (loaded) saveState(state); }, [state, loaded]);
+  useEffect(() => {
+    if (!loaded) return;
+    saveLocal(state);
+    if (uid) saveFirestore(uid, state).catch(() => {});
+  }, [state, loaded, uid]);
 
   const getLessonKey = (mIdx, lIdx) => `${mIdx}-${lIdx}`;
   const isLessonComplete = (mIdx, lIdx) => state.completedLessons.includes(getLessonKey(mIdx, lIdx));
@@ -784,6 +810,16 @@ export default function DevQuest() {
           }}>{level}</div>
           <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#fff" }}>Level {level}</div>
           <div style={{ color: "#89E219", fontWeight: 700 }}>Full Stack Developer</div>
+          {userEmail && (
+            <div style={{ color: "#A0A0A0", fontSize: "0.8rem", fontWeight: 600, marginTop: 8 }}>{userEmail}</div>
+          )}
+          {onLogout && (
+            <button onClick={onLogout} style={{
+              marginTop: 12, padding: "8px 24px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)",
+              background: "rgba(255,255,255,0.05)", color: "#FF4B4B", fontSize: "0.85rem",
+              fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito', sans-serif",
+            }}>Sign Out</button>
+          )}
         </div>
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 20px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 32 }}>
