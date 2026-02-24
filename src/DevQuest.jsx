@@ -3,7 +3,7 @@ import { COURSES, getModules, getTotalLessons } from "./data/modules";
 import { DIFFICULTY_CONFIG } from "./data/difficulty";
 import Confetti from "./components/Confetti";
 import XPBurst from "./components/XPBurst";
-import Hearts from "./components/Hearts";
+
 import ProgressRing from "./components/ProgressRing";
 import LessonView from "./LessonView";
 import DifficultyModal from "./components/DifficultyModal";
@@ -52,7 +52,7 @@ const DEFAULT_STATE = {
   xp: 0,
   streak: 0,
   lastActiveDate: null,
-  hearts: 5,
+
   completedLessons: [],
   currentModule: 0,
   level: 1,
@@ -86,7 +86,7 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
         if (last === today) { /* same day */ }
         else if (last === yesterday) { saved.streak += 1; saved.lastActiveDate = today; }
         else { saved.streak = 1; saved.lastActiveDate = today; }
-        if (last !== today) saved.hearts = 5;
+
         // Migration: tag existing completions as beginner
         if (!saved._difficultyMigrated && saved.completedLessons?.length) {
           const extra = [];
@@ -104,8 +104,9 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
           saved.completedLessons = migrateCompletedLessons(saved.completedLessons);
           saved._courseMigrated = true;
         }
-        // Remove gems from old state if present
+        // Remove deprecated fields from old state
         delete saved.gems;
+        delete saved.hearts;
         setState(saved);
       } else {
         setState(s => ({ ...s, streak: 1, lastActiveDate: new Date().toDateString() }));
@@ -145,7 +146,7 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
 
   const startLesson = (mIdx, lIdx) => {
     if (!isModuleUnlocked(mIdx)) return;
-    if (state.hearts <= 0) return;
+
     setPendingLesson({ mIdx, lIdx });
   };
 
@@ -175,9 +176,6 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
     setActiveLesson(null);
   };
 
-  const loseHeart = () => {
-    setState(prev => ({ ...prev, hearts: Math.max(0, prev.hearts - 1) }));
-  };
 
   const selectCourse = (courseId) => {
     setActiveCourse(courseId);
@@ -204,9 +202,9 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
       <>
         <Confetti active={confetti} />
         <XPBurst {...xpBurst} />
-        <LessonView lesson={lesson} moduleColor={mod.color} hearts={state.hearts}
+        <LessonView lesson={lesson} moduleColor={mod.color}
           difficulty={activeLesson.difficulty || "beginner"}
-          onComplete={completeLesson} onLoseHeart={loseHeart} />
+          onComplete={completeLesson} />
       </>
     );
   }
@@ -362,7 +360,7 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
                 <span style={{ fontSize: "1.1rem" }}>{"\u{1F525}"}</span>
                 <span style={{ color: "#FF9600", fontWeight: 800, fontSize: "0.95rem" }}>{state.streak}</span>
               </div>
-              <Hearts count={state.hearts} />
+
               <button onClick={() => setView("profile")} style={{
                 width: 36, height: 36, borderRadius: "50%", border: "2px solid #58CC02",
                 background: "rgba(88,204,2,0.15)", color: "#58CC02", fontWeight: 900,
@@ -479,15 +477,13 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
                         <button
                           key={lIdx}
                           onClick={() => startLesson(mIdx, lIdx)}
-                          disabled={state.hearts <= 0}
                           style={{
                             width: "100%", display: "flex", alignItems: "center", gap: 12,
                             padding: "12px 16px", borderRadius: 12,
                             background: lComplete ? `${mod.color}10` : "rgba(255,255,255,0.02)",
                             border: `1px solid ${lComplete ? `${mod.color}33` : "rgba(255,255,255,0.05)"}`,
-                            cursor: state.hearts > 0 ? "pointer" : "not-allowed",
+                            cursor: "pointer",
                             marginBottom: 6, textAlign: "left", transition: "all 0.15s",
-                            opacity: state.hearts > 0 ? 1 : 0.5,
                           }}
                         >
                           <div style={{
@@ -529,17 +525,6 @@ export default function DevQuest({ uid, userEmail, onLogout }) {
           />
         )}
 
-        {/* Hearts warning */}
-        {state.hearts <= 0 && (
-          <div style={{
-            background: "#FF4B4B18", border: "1px solid #FF4B4B44", borderRadius: 16,
-            padding: "20px", textAlign: "center", marginTop: 24, animation: "slideIn 0.3s ease",
-          }}>
-            <div style={{ fontSize: "2rem", marginBottom: 8 }}>{"\u{1F494}"}</div>
-            <div style={{ color: "#FF4B4B", fontWeight: 800, fontSize: "1.1rem", marginBottom: 4 }}>No hearts left!</div>
-            <div style={{ color: "#A0A0A0", fontSize: "0.85rem" }}>Hearts refill tomorrow. Review your notes in the meantime!</div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { DIFFICULTY_CONFIG } from "./data/difficulty";
-import Hearts from "./components/Hearts";
+
 import OutputQuestion from "./components/OutputQuestion";
 import FillBlankQuestion from "./components/FillBlankQuestion";
 import OrderQuestion from "./components/OrderQuestion";
 import FreeformQuestion from "./components/FreeformQuestion";
 
-export default function LessonView({ lesson, moduleColor, onComplete, hearts, onLoseHeart, difficulty = "beginner" }) {
+export default function LessonView({ lesson, moduleColor, onComplete, difficulty = "beginner" }) {
   const config = DIFFICULTY_CONFIG[difficulty] || DIFFICULTY_CONFIG.beginner;
   const questions = lesson.questions.filter(q => (q.difficulty || "beginner") === difficulty);
   const [phase, setPhase] = useState("slides");
@@ -18,6 +18,7 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
   const [wrong, setWrong] = useState(0);
   const [shake, setShake] = useState(false);
   const [showContinue, setShowContinue] = useState(false);
+  const [lastCorrect, setLastCorrect] = useState(null);
 
   const totalSteps = lesson.slides.length + questions.length;
   const currentStep = phase === "slides" ? slideIdx : lesson.slides.length + qIdx;
@@ -35,13 +36,13 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
     if (answered) return;
     setAnswered(true);
     setShowContinue(true);
+    setLastCorrect(isCorrect);
     if (isCorrect) {
       setCorrect(c => c + (opts.halfCredit ? 0.5 : 1));
     } else {
       setWrong(w => w + 1);
       setShake(true);
       setTimeout(() => setShake(false), 500);
-      onLoseHeart();
     }
   };
 
@@ -52,12 +53,12 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
     setAnswered(true);
     setShowContinue(true);
     const isCorrect = idx === questions[qIdx].answer;
+    setLastCorrect(isCorrect);
     if (isCorrect) setCorrect(c => c + 1);
     else {
       setWrong(w => w + 1);
       setShake(true);
       setTimeout(() => setShake(false), 500);
-      onLoseHeart();
     }
   };
 
@@ -67,6 +68,7 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
       setSelected(null);
       setAnswered(false);
       setShowContinue(false);
+      setLastCorrect(null);
     } else {
       setPhase("result");
     }
@@ -91,7 +93,6 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
             boxShadow: `0 0 12px ${moduleColor}66`,
           }} />
         </div>
-        <Hearts count={hearts} />
       </div>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
@@ -199,18 +200,31 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
               <FreeformQuestion key={qIdx} question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
             )}
 
-            {/* Continue button (MCQ shows inline, others use showContinue) */}
+            {/* Continue button + feedback */}
             {answered && (
               <div style={{ marginTop: 20, animation: "slideUp 0.3s ease" }}>
-                {qType === "mcq" && (
+                {/* Correct/incorrect feedback for MCQ and output */}
+                {(qType === "mcq" || qType === "output") && (
                   <div style={{
-                    padding: "14px 20px", borderRadius: 14, marginBottom: 16,
-                    background: selected === question.answer ? "#58CC0218" : "#FF4B4B18",
-                    border: `1px solid ${selected === question.answer ? "#58CC0244" : "#FF4B4B44"}`,
-                    color: selected === question.answer ? "#58CC02" : "#FF4B4B",
+                    padding: "14px 20px", borderRadius: 14, marginBottom: lastCorrect === false && question.explanation ? 0 : 16,
+                    background: lastCorrect ? "#58CC0218" : "#FF4B4B18",
+                    border: `1px solid ${lastCorrect ? "#58CC0244" : "#FF4B4B44"}`,
+                    color: lastCorrect ? "#58CC02" : "#FF4B4B",
                     fontSize: "0.95rem", fontWeight: 700, fontFamily: "'Nunito', sans-serif",
                   }}>
-                    {selected === question.answer ? "Correct! Great job!" : `The correct answer was: ${question.options[question.answer]}`}
+                    {lastCorrect ? "Correct! Great job!" : `The correct answer was: ${question.options[question.answer]}`}
+                  </div>
+                )}
+                {/* Explanation when wrong (all question types) */}
+                {lastCorrect === false && question.explanation && (
+                  <div style={{
+                    padding: "14px 20px", borderRadius: 14, marginTop: 8, marginBottom: 16,
+                    background: "rgba(255,200,0,0.06)", border: "1px solid rgba(255,200,0,0.2)",
+                    fontSize: "0.9rem", fontWeight: 600, fontFamily: "'Nunito', sans-serif",
+                    color: "#E5E5E5", lineHeight: 1.6,
+                  }}>
+                    <span style={{ color: "#FFC800", fontWeight: 800 }}>Why? </span>
+                    {question.explanation}
                   </div>
                 )}
                 <button onClick={handleNextQ} style={{
