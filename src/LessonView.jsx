@@ -181,22 +181,22 @@ export default function LessonView({ lesson, moduleColor, onComplete, hearts, on
 
             {/* Output question */}
             {qType === "output" && (
-              <OutputQuestion question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
+              <OutputQuestion key={qIdx} question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
             )}
 
             {/* Fill-in-the-blank question */}
             {qType === "fill" && (
-              <FillBlankQuestion question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
+              <FillBlankQuestion key={qIdx} question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
             )}
 
             {/* Code ordering question */}
             {qType === "order" && (
-              <OrderQuestion question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
+              <OrderQuestion key={qIdx} question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
             )}
 
             {/* Freeform code question */}
             {qType === "freeform" && (
-              <FreeformQuestion question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
+              <FreeformQuestion key={qIdx} question={question} moduleColor={moduleColor} onAnswer={handleAnswer} />
             )}
 
             {/* Continue button (MCQ shows inline, others use showContinue) */}
