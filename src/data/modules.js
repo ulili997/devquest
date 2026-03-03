@@ -1,6 +1,5 @@
 import { PYTHON_MODULES } from "./python-content";
-import { DSA_PART1 } from "./dsa-part1";
-import { DSA_PART2 } from "./dsa-part2";
+import { SQL_EXCEL_MODULES } from "./sql-excel-content";
 
 const FULLSTACK_MODULES = [
   {
@@ -852,13 +851,13 @@ export const COURSES = {
     color: "#3776AB",
     modules: PYTHON_MODULES,
   },
-  dsa: {
-    id: "dsa",
-    title: "Data Structures & Algorithms",
-    icon: "\u{1F9EE}",
-    desc: "Think like a computer scientist",
-    color: "#E74C3C",
-    modules: [...DSA_PART1, ...DSA_PART2],
+  sql: {
+    id: "sql",
+    title: "SQL, Excel & Power Query",
+    icon: "📊",
+    desc: "Hands-on data skills for analysts",
+    color: "#336791",
+    modules: SQL_EXCEL_MODULES,
   },
 };
 
